@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Quebra de Código de Barras - Convenção Cobrança</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    .campo { margin: 10px 0; padding: 10px; border-radius: 5px; color: #fff; }
+    .c1 { background: #0074D9; }
+    .c2 { background: #2ECC40; }
+    .c3 { background: #FF851B; }
+    .c4 { background: #B10DC9; }
+    .c5 { background: #FF4136; }
+    .c6 { background: #39CCCC; }
+    label { font-weight: bold; }
+    input[type="text"] { width: 550px; font-size: 1.2em; }
+    .linha-digitavel, .barra { font-size: 1.2em; color: #222; background: #eaeaea; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Quebra de Código de Barras ou Linha Digitável</h2>
+  <label for="codigo">Digite qualquer texto contendo o código de barras (44 dígitos) ou linha digitável (47 dígitos):</label><br>
+  <input type="text" id="codigo" />
+  <button onclick="quebrarCodigo()">Quebrar</button>
+  <div id="resultado"></div>
+  <script>
+    function modulo10(num) {
+      let soma = 0, peso = 2;
+      for (let i = num.length - 1; i >= 0; i--) {
+        let mult = +num[i] * peso;
+        if (mult > 9) mult -= 9;
+        soma += mult;
+        peso = (peso === 2) ? 1 : 2;
+      }
+      let dv = (10 - (soma % 10)) % 10;
+      return dv;
+    }
+    function barraParaLinhaDigitavel(barra) {
+      let campo1 = barra.substr(0, 4) + barra.substr(19, 5);
+      let dv1 = modulo10(campo1);
+      let campo2 = barra.substr(24, 10);
+      let dv2 = modulo10(campo2);
+      let campo3 = barra.substr(34, 10);
+      let dv3 = modulo10(campo3);
+      let campo4 = barra.substr(4, 1);
+      let campo5 = barra.substr(5, 14);
+      return (campo1 + dv1 + campo2 + dv2 + campo3 + dv3 + campo4 + campo5);
+    }
+    function linhaDigitavelParaBarra(ld) {
+      let campo1 = ld.substr(0, 9);
+      let campo2 = ld.substr(10, 10);
+      let campo3 = ld.substr(21, 10);
+      let dvGeral = ld.substr(32, 1);
+      let fatorVenc = ld.substr(33, 4);
+      let valor = ld.substr(37, 10);
+      let barra = '';
+      barra += campo1.substr(0, 4);
+      barra += dvGeral;
+      barra += fatorVenc;
+      barra += valor;
+      barra += campo1.substr(4, 5);
+      barra += campo2;
+      barra += campo3;
+      return barra;
+    }
+    function formatarLinhaDigitavel(ld) {
+      return (
+        ld.substr(0,5) + '.' + ld.substr(5,5) + ' ' +
+        ld.substr(10,5) + '.' + ld.substr(15,5) + ' ' +
+        ld.substr(20,5) + '.' + ld.substr(25,6) + ' ' +
+        ld.substr(31,1) + ' ' + ld.substr(32)
+      );
+    }
+    function quebrarCodigo() {
+      const cod = document.getElementById('codigo').value.replace(/\D/g, '').trim();
+      const res = document.getElementById('resultado');
+      res.innerHTML = '';
+      if (cod.length === 44) {
+        const campos = [
+          { nome: "Número código da ID destinatária no SILOC", cor: "c1", ini: 0, fim: 3, desc: "Identifica o banco/instituição." },
+          { nome: "Código de Moeda", cor: "c2", ini: 3, fim: 4, desc: "9 = Real." },
+          { nome: "Dígito Verificador (DV)", cor: "c3", ini: 4, fim: 5, desc: "Dígito de verificação do código de barras." },
+          { nome: "Fator de vencimento", cor: "c4", ini: 5, fim: 9, desc: "Dias desde 07/10/1997 até o vencimento." },
+          { nome: "Valor", cor: "c5", ini: 9, fim: 19, desc: "Valor do boleto (sem vírgula, com 2 casas decimais)." },
+          { nome: "Campo livre", cor: "c6", ini: 19, fim: 44, desc: "Informações específicas do banco/beneficiário." }
+        ];
+        res.innerHTML = '<h3>Formato: Código de Barras (44 dígitos)</h3>';
+        campos.forEach(campo => {
+          const valor = cod.substring(campo.ini, campo.fim);
+          res.innerHTML += `
+            <div class="campo ${campo.cor}">
+              <strong>${campo.nome}:</strong>
+              <span style="font-size:1.2em">${valor}</span><br>
+              <em>${campo.desc}</em>
+            </div>
+          `;
+        });
+        const ld = barraParaLinhaDigitavel(cod);
+        res.innerHTML += `<div class="linha-digitavel"><b>Linha Digitável:</b> ${formatarLinhaDigitavel(ld)}</div>`;
+      } else if (cod.length === 47) {
+        const camposLD = [
+          { nome: "Campo 1", cor: "c1", ini: 0, fim: 9, desc: "Banco, moeda, parte do campo livre e DV do campo 1." },
+          { nome: "Dígito verificador do Campo 1", cor: "c2", ini: 9, fim: 10, desc: "DV do campo 1." },
+          { nome: "Campo 2", cor: "c3", ini: 10, fim: 20, desc: "Parte do campo livre." },
+          { nome: "Dígito verificador do Campo 2", cor: "c4", ini: 20, fim: 21, desc: "DV do campo 2." },
+          { nome: "Campo 3", cor: "c5", ini: 21, fim: 31, desc: "Parte do campo livre." },
+          { nome: "Dígito verificador do Campo 3", cor: "c6", ini: 31, fim: 32, desc: "DV do campo 3." },
+          { nome: "Dígito verificador geral (DV)", cor: "c1", ini: 32, fim: 33, desc: "DV geral do código de barras." },
+          { nome: "Fator de vencimento", cor: "c2", ini: 33, fim: 37, desc: "Dias desde 07/10/1997 até o vencimento." },
+          { nome: "Valor", cor: "c3", ini: 37, fim: 47, desc: "Valor do boleto (sem vírgula, com 2 casas decimais)." }
+        ];
+        res.innerHTML = '<h3>Formato: Linha Digitável (47 dígitos)</h3>';
+        camposLD.forEach(campo => {
+          const valor = cod.substring(campo.ini, campo.fim);
+          res.innerHTML += `
+            <div class="campo ${campo.cor}">
+              <strong>${campo.nome}:</strong>
+              <span style="font-size:1.2em">${valor}</span><br>
+              <em>${campo.desc}</em>
+            </div>
+          `;
+        });
+        const barra = linhaDigitavelParaBarra(cod);
+        res.innerHTML += `<div class="barra"><b>Código de Barras:</b> ${barra}</div>`;
+      } else {
+        res.innerHTML = '<span style="color:red">O texto informado não contém 44 dígitos (código de barras) nem 47 dígitos (linha digitável) após a filtragem. Verifique e tente novamente.</span>';
+      }
+    }
+  </script>
+</body>
+</html>
