@@ -1,29 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8">
   <title>Quebra de Código de Barras - Convenção Cobrança</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    .campo { margin: 10px 0; padding: 10px; border-radius: 5px; color: #fff; }
-    .c1 { background: #0074D9; }
-    .c2 { background: #2ECC40; }
-    .c3 { background: #FF851B; }
-    .c4 { background: #B10DC9; }
-    .c5 { background: #FF4136; }
-    .c6 { background: #39CCCC; }
-    label { font-weight: bold; }
-    input[type="text"] { width: 550px; font-size: 1.2em; }
-    .linha-digitavel, .barra { font-size: 1.2em; color: #222; background: #eaeaea; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+
+    .campo {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      color: #fff;
+    }
+    .c1 {
+      background: #0074D9;
+    }
+
+    .c2 {
+      background: #2ECC40;
+    }
+
+    .c3 {
+      background: #FF851B;
+    }
+
+    .c4 {
+      background: #B10DC9;
+    }
+
+    .c5 {
+      background: #FF4136;
+    }
+
+    .c6 {
+      background: #39CCCC;
+    }
+
+    .c7 {
+      background: #FFDC00;
+    }
+
+    .c8 {
+      background: #85144b;
+    }
+
+    .c9 {
+      background: #3D9970;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      width: 550px;
+      font-size: 1.2em;
+    }
+
+    .linha-digitavel,
+    .barra {
+      font-size: 1.2em;
+      color: #222;
+      background: #eaeaea;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
+
 <body>
   <button onclick="window.location.href='index.html'" style="margin-bottom:20px;">
     <img src="imagens/inicio.svg" alt="Início" style="height:80px;vertical-align:middle;margin-right:8px;"><br>
     Voltar para o início
   </button>
   <h2>Quebra de Código de Barras ou Linha Digitável</h2>
-  <label for="codigo">Digite qualquer texto contendo o código de barras (44 dígitos) ou linha digitável (47 dígitos):</label><br>
+  <label for="codigo">Digite qualquer texto contendo o código de barras (44 dígitos) ou linha digitável (47
+    dígitos):</label><br>
   <input type="text" id="codigo" />
   <button onclick="quebrarCodigo()">Quebrar</button>
   <button onclick="exemploBarra()">Exemplo barra</button>
@@ -71,51 +128,45 @@
     }
     function formatarLinhaDigitavel(ld) {
       return (
-        ld.substr(0,5) + '.' + ld.substr(5,5) + ' ' +
-        ld.substr(10,5) + '.' + ld.substr(15,5) + ' ' +
-        ld.substr(20,5) + '.' + ld.substr(25,6) + ' ' +
-        ld.substr(31,1) + ' ' + ld.substr(32)
+        ld.substr(0, 5) + '.' + ld.substr(5, 5) + ' ' +
+        ld.substr(10, 5) + '.' + ld.substr(15, 5) + ' ' +
+        ld.substr(20, 5) + '.' + ld.substr(25, 6) + ' ' +
+        ld.substr(31, 1) + ' ' + ld.substr(32)
       );
     }
     function quebrarCodigo() {
       const cod = document.getElementById('codigo').value.replace(/\D/g, '').trim();
       const res = document.getElementById('resultado');
       res.innerHTML = '';
+
+      //Barra
       if (cod.length === 44) {
-        function fatorParaDataVencimento(fator) {
-          // Algoritmo conforme solicitado
-          // Antes de 22/02/2025: fator = dias desde 07/10/1997
-          // A partir de 22/02/2025: fator reinicia em 1000
-          // está sem a lógica de resetar a cada 9000 dias (fator de vencimento é entre 1000 e 9999)
-          const base1 = new Date(1997, 9, 7); // 07/10/1997
-          const base2 = new Date(2025, 1, 22); // 22/02/2025
-          fator = parseInt(fator, 10);
-          let vencimento;
-            if (new Date() < base2) {
-            vencimento = new Date(base1.getTime() + fator * 24 * 60 * 60 * 1000);
-          } else {
-            vencimento = new Date(base2.getTime() + (fator - 1000) * 24 * 60 * 60 * 1000);
-          }
-          // Formatar para dd/mm/yyyy
-          const dia = String(vencimento.getDate()).padStart(2, '0');
-          const mes = String(vencimento.getMonth() + 1).padStart(2, '0');
-          const ano = vencimento.getFullYear();
-          return `${dia}/${mes}/${ano}`;
-        }
+
         const campos = [
           { nome: "Número código da ID destinatária no SILOC", cor: "c1", ini: 0, fim: 3, desc: "Identifica o banco/instituição." },
           { nome: "Código de Moeda", cor: "c2", ini: 3, fim: 4, desc: "9 = Real." },
           { nome: "Dígito Verificador (DV)", cor: "c3", ini: 4, fim: 5, desc: "Dígito de verificação do código de barras." },
-          { nome: "Fator de vencimento", cor: "c4", ini: 5, fim: 9, desc: function(valor) {
-            const dataVenc = fatorParaDataVencimento(valor);
-            return `Data de vencimento calculada: ${dataVenc}`;
-          } },
-          { nome: "Valor", cor: "c5", ini: 9, fim: 19, desc: "Valor do boleto (sem vírgula, com 2 casas decimais)." },
+            {
+            nome: "Fator de vencimento", cor: "c4", ini: 5, fim: 9, desc: function (valor) {
+              const dataVenc = fatorParaDataVencimento(valor);
+              return `Data de vencimento calculada: ${dataVenc}`;
+            }
+            },
+            {
+            nome: "Valor", cor: "c5",
+            ini: function (cod) {
+              // Se o primeiro dígito do fator de vencimento for zero
+              return cod[5] == '0' ? 6 : 9;
+            },
+            fim: 19,
+            desc: "Valor do boleto (sem vírgula, com 2 casas decimais)."
+            },
           { nome: "Campo livre", cor: "c6", ini: 19, fim: 44, desc: "Informações específicas do banco/beneficiário." }
         ];
         res.innerHTML = '<h3>Formato: Código de Barras (44 dígitos)</h3>';
         campos.forEach(campo => {
-          const valor = cod.substring(campo.ini, campo.fim);
+          let ini = typeof campo.ini === 'function' ? campo.ini(cod) : campo.ini;
+          const valor = cod.substring(ini, campo.fim);
           let desc = typeof campo.desc === 'function' ? campo.desc(valor) : campo.desc;
           res.innerHTML += `
         <div class="campo ${campo.cor}">
@@ -128,6 +179,7 @@
         const ld = barraParaLinhaDigitavel(cod);
         res.innerHTML += `<div class="linha-digitavel"><b>Linha Digitável:</b> ${formatarLinhaDigitavel(ld)}</div>`;
         res.innerHTML += `<div class="linha-digitavel"><b>Linha Digitável apenas números:</b> ${ld.replace(/\D/g, '')}</div>`;
+      //Linha Digitável
       } else if (cod.length === 47) {
         const camposLD = [
           { nome: "Campo 1", cor: "c1", ini: 0, fim: 9, desc: "Banco, moeda, parte do campo livre e DV do campo 1." },
@@ -136,18 +188,33 @@
           { nome: "Dígito verificador do Campo 2", cor: "c4", ini: 20, fim: 21, desc: "DV do campo 2." },
           { nome: "Campo 3", cor: "c5", ini: 21, fim: 31, desc: "Parte do campo livre." },
           { nome: "Dígito verificador do Campo 3", cor: "c6", ini: 31, fim: 32, desc: "DV do campo 3." },
-          { nome: "Dígito verificador geral (DV)", cor: "c1", ini: 32, fim: 33, desc: "DV geral do código de barras." },
-          { nome: "Fator de vencimento", cor: "c2", ini: 33, fim: 37, desc: "Dias desde 07/10/1997 até o vencimento." },
-          { nome: "Valor", cor: "c3", ini: 37, fim: 47, desc: "Valor do boleto (sem vírgula, com 2 casas decimais)." }
+          { nome: "Dígito verificador geral (DV)", cor: "c7", ini: 32, fim: 33, desc: "DV geral do código de barras." },
+          {
+            nome: "Fator de vencimento", cor: "c8", ini: 33, fim: 37, desc: function (valor) {
+              const dataVenc = fatorParaDataVencimento(valor);
+              return `Data de vencimento calculada: ${dataVenc}`;
+            }
+          },        
+          {
+            nome: "Valor", cor: "c9",
+            ini: function (cod) {
+              // Se o primeiro dígito do fator de vencimento for zero
+              return cod[33] == '0' ? 33 : 37;
+            },
+            fim: 47,
+            desc: "Valor do boleto (sem vírgula, com 2 casas decimais)."
+            }
         ];
         res.innerHTML = '<h3>Formato: Linha Digitável (47 dígitos)</h3>';
         camposLD.forEach(campo => {
-          const valor = cod.substring(campo.ini, campo.fim);
+          let ini = typeof campo.ini === 'function' ? campo.ini(cod) : campo.ini;
+          const valor = cod.substring(ini, campo.fim);
+          let desc = typeof campo.desc === 'function' ? campo.desc(valor) : campo.desc;
           res.innerHTML += `
             <div class="campo ${campo.cor}">
               <strong>${campo.nome}:</strong>
               <span style="font-size:1.2em">${valor}</span><br>
-              <em>${campo.desc}</em>
+              <em>${desc}</em>
             </div>
           `;
         });
@@ -165,6 +232,28 @@
       document.getElementById('codigo').value = "34191101213456788005871234570001616670000012345";
       quebrarCodigo();
     }
+    function fatorParaDataVencimento(fator) {
+      if (fator[0] === '0') {
+        return `sem data, esta começando com "0"`;
+      }
+      // A partir de 22/02/2025: fator reinicia em 1000
+      // está sem a lógica de resetar a cada 9000 dias (fator de vencimento é entre 1000 e 9999)
+      const base1 = new Date(1997, 9, 7); // 07/10/1997
+      const base2 = new Date(2025, 1, 22); // 22/02/2025
+      fator = parseInt(fator, 10);
+      let vencimento;
+      if (new Date() < base2) {
+        vencimento = new Date(base1.getTime() + fator * 24 * 60 * 60 * 1000);
+      } else {
+        vencimento = new Date(base2.getTime() + (fator - 1000) * 24 * 60 * 60 * 1000);
+      }
+      // Formatar para dd/mm/yyyy
+      const dia = String(vencimento.getDate()).padStart(2, '0');
+      const mes = String(vencimento.getMonth() + 1).padStart(2, '0');
+      const ano = vencimento.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
   </script>
 </body>
+
 </html>
