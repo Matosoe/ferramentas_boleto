@@ -18,6 +18,10 @@
   </style>
 </head>
 <body>
+  <button onclick="window.location.href='index.html'" style="margin-bottom:20px;">
+    <img src="imagens/inicio.svg" alt="Início" style="height:80px;vertical-align:middle;margin-right:8px;"><br>
+    Voltar para o início
+  </button>
   <h2>Quebra de Código de Barras ou Linha Digitável</h2>
   <label for="codigo">Digite qualquer texto contendo o código de barras (44 dígitos) ou linha digitável (47 dígitos):</label><br>
   <input type="text" id="codigo" />
@@ -78,22 +82,46 @@
       const res = document.getElementById('resultado');
       res.innerHTML = '';
       if (cod.length === 44) {
+        function fatorParaDataVencimento(fator) {
+          // Algoritmo conforme solicitado
+          // Antes de 22/02/2025: fator = dias desde 07/10/1997
+          // A partir de 22/02/2025: fator reinicia em 1000
+          // está sem a lógica de resetar a cada 9000 dias (fator de vencimento é entre 1000 e 9999)
+          const base1 = new Date(1997, 9, 7); // 07/10/1997
+          const base2 = new Date(2025, 1, 22); // 22/02/2025
+          fator = parseInt(fator, 10);
+          let vencimento;
+            if (new Date() < base2) {
+            vencimento = new Date(base1.getTime() + fator * 24 * 60 * 60 * 1000);
+          } else {
+            vencimento = new Date(base2.getTime() + (fator - 1000) * 24 * 60 * 60 * 1000);
+          }
+          // Formatar para dd/mm/yyyy
+          const dia = String(vencimento.getDate()).padStart(2, '0');
+          const mes = String(vencimento.getMonth() + 1).padStart(2, '0');
+          const ano = vencimento.getFullYear();
+          return `${dia}/${mes}/${ano}`;
+        }
         const campos = [
           { nome: "Número código da ID destinatária no SILOC", cor: "c1", ini: 0, fim: 3, desc: "Identifica o banco/instituição." },
           { nome: "Código de Moeda", cor: "c2", ini: 3, fim: 4, desc: "9 = Real." },
           { nome: "Dígito Verificador (DV)", cor: "c3", ini: 4, fim: 5, desc: "Dígito de verificação do código de barras." },
-          { nome: "Fator de vencimento", cor: "c4", ini: 5, fim: 9, desc: "Dias desde 07/10/1997 até o vencimento." },
+          { nome: "Fator de vencimento", cor: "c4", ini: 5, fim: 9, desc: function(valor) {
+            const dataVenc = fatorParaDataVencimento(valor);
+            return `Data de vencimento calculada: ${dataVenc}`;
+          } },
           { nome: "Valor", cor: "c5", ini: 9, fim: 19, desc: "Valor do boleto (sem vírgula, com 2 casas decimais)." },
           { nome: "Campo livre", cor: "c6", ini: 19, fim: 44, desc: "Informações específicas do banco/beneficiário." }
         ];
         res.innerHTML = '<h3>Formato: Código de Barras (44 dígitos)</h3>';
         campos.forEach(campo => {
           const valor = cod.substring(campo.ini, campo.fim);
+          let desc = typeof campo.desc === 'function' ? campo.desc(valor) : campo.desc;
           res.innerHTML += `
         <div class="campo ${campo.cor}">
           <strong>${campo.nome}:</strong>
           <span style="font-size:1.2em">${valor}</span><br>
-          <em>${campo.desc}</em>
+          <em>${desc}</em>
         </div>
           `;
         });
