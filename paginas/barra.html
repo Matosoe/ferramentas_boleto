@@ -146,29 +146,32 @@
           { nome: "Número código da ID destinatária no SILOC", cor: "c1", ini: 0, fim: 3, desc: "Identifica o banco/instituição." },
           { nome: "Código de Moeda", cor: "c2", ini: 3, fim: 4, desc: "9 = Real." },
           { nome: "Dígito Verificador (DV)", cor: "c3", ini: 4, fim: 5, desc: "Dígito de verificação do código de barras." },
-            {
-            nome: "Fator de vencimento", cor: "c4", ini: 5, fim: 9, desc: function (valor) {
-              const dataVenc = fatorParaDataVencimento(valor);
-              return `Data de vencimento calculada: ${dataVenc}`;
-            }
-            },
-            {
-            nome: "Valor", cor: "c5",
-            ini: function (cod) {
-              // Se o primeiro dígito do fator de vencimento for zero
-              return cod[5] == '0' ? 6 : 9;
-            },
-            fim: 19,
-            desc: "Valor do boleto (sem vírgula, com 2 casas decimais)."
-            },
-          { nome: "Campo livre", cor: "c6", ini: 19, fim: 44, desc: "Informações específicas do banco/beneficiário." }
-        ];
-        res.innerHTML = '<h3>Formato: Código de Barras (44 dígitos)</h3>';
-        campos.forEach(campo => {
-          let ini = typeof campo.ini === 'function' ? campo.ini(cod) : campo.ini;
-          const valor = cod.substring(ini, campo.fim);
-          let desc = typeof campo.desc === 'function' ? campo.desc(valor) : campo.desc;
-          res.innerHTML += `
+        {
+        nome: "Fator de vencimento", cor: "c4", ini: 5, fim: 9, desc: function (valor) {
+          const dataVenc = fatorParaDataVencimento(valor);
+          return `Data de vencimento calculada: ${dataVenc}`;
+        }
+        },
+        {
+        nome: "Valor", cor: "c5",
+        ini: function (cod) {
+          // Se o primeiro dígito do fator de vencimento for zero
+          return cod[5] == '0' ? 6 : 9;
+        },
+        fim: 19,
+        desc: function (valor) {
+          const valorNum = parseInt(valor, 10) / 100;
+          return `Valor nominal: R$ ${valorNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        },
+        { nome: "Campo livre", cor: "c6", ini: 19, fim: 44, desc: "Informações específicas do banco/beneficiário." }
+          ];
+          res.innerHTML = '<h3>Formato: Código de Barras (44 dígitos)</h3>';
+          campos.forEach(campo => {
+        let ini = typeof campo.ini === 'function' ? campo.ini(cod) : campo.ini;
+        const valor = cod.substring(ini, campo.fim);
+        let desc = typeof campo.desc === 'function' ? campo.desc(valor) : campo.desc;
+        res.innerHTML += `
         <div class="campo ${campo.cor}">
           <strong>${campo.nome}:</strong>
           <span style="font-size:1.2em">${valor}</span><br>
@@ -190,20 +193,23 @@
           { nome: "Dígito verificador do Campo 3", cor: "c6", ini: 31, fim: 32, desc: "DV do campo 3." },
           { nome: "Dígito verificador geral (DV)", cor: "c7", ini: 32, fim: 33, desc: "DV geral do código de barras." },
           {
-            nome: "Fator de vencimento", cor: "c8", ini: 33, fim: 37, desc: function (valor) {
-              const dataVenc = fatorParaDataVencimento(valor);
-              return `Data de vencimento calculada: ${dataVenc}`;
-            }
+        nome: "Fator de vencimento", cor: "c8", ini: 33, fim: 37, desc: function (valor) {
+          const dataVenc = fatorParaDataVencimento(valor);
+          return `Data de vencimento calculada: ${dataVenc}`;
+        }
           },        
           {
-            nome: "Valor", cor: "c9",
-            ini: function (cod) {
-              // Se o primeiro dígito do fator de vencimento for zero
-              return cod[33] == '0' ? 33 : 37;
-            },
-            fim: 47,
-            desc: "Valor do boleto (sem vírgula, com 2 casas decimais)."
-            }
+        nome: "Valor", cor: "c9",
+        ini: function (cod) {
+          // Se o primeiro dígito do fator de vencimento for zero
+          return cod[33] == '0' ? 33 : 37;
+        },
+        fim: 47,
+        desc: function (valor) {
+          const valorNum = parseInt(valor, 10) / 100;
+          return `Valor nominal: R$ ${valorNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+          }
         ];
         res.innerHTML = '<h3>Formato: Linha Digitável (47 dígitos)</h3>';
         camposLD.forEach(campo => {
@@ -211,11 +217,11 @@
           const valor = cod.substring(ini, campo.fim);
           let desc = typeof campo.desc === 'function' ? campo.desc(valor) : campo.desc;
           res.innerHTML += `
-            <div class="campo ${campo.cor}">
-              <strong>${campo.nome}:</strong>
-              <span style="font-size:1.2em">${valor}</span><br>
-              <em>${desc}</em>
-            </div>
+        <div class="campo ${campo.cor}">
+          <strong>${campo.nome}:</strong>
+          <span style="font-size:1.2em">${valor}</span><br>
+          <em>${desc}</em>
+        </div>
           `;
         });
         const barra = linhaDigitavelParaBarra(cod);
